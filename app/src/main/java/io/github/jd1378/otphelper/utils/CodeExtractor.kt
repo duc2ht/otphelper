@@ -54,24 +54,10 @@ class CodeExtractor {
             .toRegex(setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE))
 
     fun getCode(str: String): String? {
-      val results = generalCodeMatcher.findAll(str).filter { it.groups["code"] !== null }
-      if (results.count() > 0) {
-        // generalCodeMatcher also detects if the text contains "code" keyword
-        // so we only run google's regex only if general regex did not capture the "code" group
-        val foundCode =
-            results
-                .find { !it.groups["code"]!!.value.isNullOrEmpty() }
-                ?.groups
-                ?.get("code")
-                ?.value
-                ?.replace(" ", "")
-        if (foundCode !== null) {
-          return toEnglishNumbers(foundCode)
-        }
-        return toEnglishNumbers(
-            specialCodeMatcher.find(str)?.groups?.get("code")?.value?.replace(" ", ""))
-      }
-      return null
+      val sensitiveWordsRegex = sensitiveWords.joinToString("|")
+            val pattern = """(?<=($sensitiveWordsRegex)\s*:?\s*)\b([\d\u0660-\u0669\u06F0-\u06F9a-zA-Z ]{4,})\b""".toRegex(setOf(RegexOption.IGNORE_CASE))
+            val match = pattern.find(str)
+            return match?.value
     }
 
     private fun toEnglishNumbers(number: String?): String? {
